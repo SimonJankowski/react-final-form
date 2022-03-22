@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { Form, Field } from "react-final-form";
+import { Form, Field, FormSpy } from "react-final-form";
+import createDecorator from "final-form-focus";
 
 import List from "./List";
+
+const focusOnError = createDecorator();
 
 function App() {
   const [rockets, setRockets] = useState([]);
@@ -34,7 +37,7 @@ function App() {
     }
     return errors;
   };
-//Field level validation
+  //Field level validation
   const isTrue = (value) => (value === true ? undefined : "required");
 
   return (
@@ -46,12 +49,15 @@ function App() {
             <Form
               onSubmit={onSubmit}
               validate={validate}
+              decorators={[focusOnError]}
+              //subscription={{ submitting: true }}
               initialValues={{
                 rocketname: "",
                 rockettype: "Falcon 1",
                 enginetype: "Marlin",
                 enginenumber: "",
                 terms: false,
+                terms2: false,
               }}
               render={({ handleSubmit, values }) => (
                 <form className="g-3" onSubmit={handleSubmit}>
@@ -138,12 +144,7 @@ function App() {
                   </div>
 
                   <div className="m-3 form-check">
-                    <Field
-                      name="terms"
-                      type="checkbox"
-                      id="terms"
-                      validate={isTrue}
-                    >
+                    <Field name="terms" type="checkbox" validate={isTrue}>
                       {({ input, meta }) => (
                         <div>
                           <input
@@ -165,12 +166,7 @@ function App() {
                   </div>
 
                   <div className="m-3 form-check">
-                    <Field
-                      name="terms2"
-                      type="checkbox"
-                      id="terms2"
-                      validate={isTrue}
-                    >
+                    <Field name="terms2" type="checkbox" validate={isTrue}>
                       {({ input, meta }) => (
                         <div>
                           <input
@@ -206,7 +202,11 @@ function App() {
                       Send to Mars
                     </button>
                   </div>
-                  {JSON.stringify(values)}
+                  <FormSpy>
+                    {({ values }) => (
+                      <pre>{JSON.stringify(values, undefined, 1)}</pre>
+                    )}
+                  </FormSpy>
                 </form>
               )}
             ></Form>
