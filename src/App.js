@@ -1,68 +1,41 @@
 import { useState } from "react";
 import { Form, Field } from "react-final-form";
 
+import List from "./List";
+
 function App() {
   const [rockets, setRockets] = useState([]);
 
   const onSubmit = (data, formData) => {
-    console.log(data);
-    const newRocket = {
+    let newRocket = {
       name: data.rocketname,
       rocketType: data.rockettype,
       engineType: data.enginetype,
-      engineNumber: data.enginenumbers,
-      sent:Date.now()
+      engineNumber: data.enginenumber,
+      sent: Date.now(),
     };
     setRockets([...rockets, newRocket]);
   };
-
+  // Record level validation
   const validate = (values) => {
     const errors = {};
     if (!values.rocketname) {
-      errors.rocketname = "You have to name your roket!";
+      errors.rocketname = "You have to name your rocket!";
+    }
+    if (values.rocketname && values.rocketname.length < 6) {
+      errors.rocketname = "Rocket name has to be atleast 6 characters";
     }
     if (values.terms === false) {
       errors.terms = "You have to accept the risk";
     }
+    if (values.enginetype === "Marlin" && values.enginenumber < 3) {
+      errors.enginenumber =
+        "Weak Rocket, You have to Change Egine type, or add more engines";
+    }
     return errors;
   };
 
-  const isTrue = value => (value===true ? undefined : "required")
-
-  const formatDate =(dateStamp)=>{
-    let extractedDate = new Date(dateStamp);
-    let tls = extractedDate.toLocaleString();
-    return `Launched at: ${tls}`
-  }
-
-
-  const renderRockets = (rockets) => {
-    if (rockets.length) {
-      return rockets.map((rocket) => {
-        return (
-          <div
-            className="card col-3 m-2"
-            key={Date.now()}
-            style={{ height: "fit-content" }}
-          >
-            <img
-              src="https://img.freepik.com/free-vector/rocket-doodle-space-sketch-cartoon_507816-294.jpg"
-              className="card-img-top"
-              style={{ width: "auto" }}
-              alt="..."
-            />
-            <div className="card-body">
-              <h5 className="card-title">{rocket.name}</h5>
-              <p>{rocket.rocketType}</p>
-              <p>Engines:{rocket.engineNumber} x {rocket.engineType}</p>
-              <p>{rocket.engineNumber}</p>
-              <p>{formatDate(rocket.sent)}</p>
-            </div>
-          </div>
-        );
-      });
-    }
-  };
+  const isTrue = (value) => (value === true ? undefined : "required");
 
   return (
     <div className="App">
@@ -77,13 +50,11 @@ function App() {
                 rocketname: "",
                 rockettype: "Falcon 1",
                 enginetype: "Marlin",
-                enginenumbers:"1",
-                terms:false
+                enginenumber: "",
+                terms: false,
               }}
               render={({ handleSubmit, values }) => (
                 <form className="g-3" onSubmit={handleSubmit}>
-
-
                   <div className="m-3">
                     <Field
                       name="rocketname"
@@ -110,7 +81,6 @@ function App() {
                     />
                   </div>
 
-
                   <div className="m-3">
                     <p>Select Rocket</p>
                     <Field
@@ -123,7 +93,6 @@ function App() {
                       <option value="Falcon Heavy ">Falcon Heavy </option>
                     </Field>
                   </div>
-
 
                   <div className="m-3">
                     <p>Select engine</p>
@@ -139,67 +108,99 @@ function App() {
                     </Field>
                   </div>
 
-
                   <div className="m-3">
-                    {/* in the next field i am using render again because i don't know what component to specify for number type */}
                     <Field
-                      name="enginenumbers"
+                      name="enginenumber"
                       render={({ input, meta }) => (
                         <div>
-                          <label htmlFor="rocketname" className="form-label">
+                          <label htmlFor="enginenumber" className="form-label">
                             Number of Engines
                           </label>
                           <input
                             {...input}
-                            className="form-control"
+                            className={
+                              meta.touched && meta.error
+                                ? "form-control is-invalid"
+                                : "form-control"
+                            }
                             type="number"
                             max="12"
                             min="1"
                           />
+                          {meta.touched && meta.error && (
+                            <span className="invalid-feedback">
+                              {meta.error}
+                            </span>
+                          )}
                         </div>
                       )}
                     />
                   </div>
 
-
                   <div className="m-3 form-check">
                     <Field
                       name="terms"
                       type="checkbox"
-                      component="input"
-                      className="form-check-input"
                       id="terms"
                       validate={isTrue}
-                    />
-                    <label className="form-check-label" htmlFor="terms">
-                      Agree To Take Risk
-                    </label>
+                    >
+                      {({ input, meta }) => (
+                        <div>
+                          <input
+                            {...input}
+                            type="checkbox"
+                            id="terms"
+                            className="form-check-input"
+                          />
+                          <label className="form-check-label" htmlFor="terms">
+                            Agree To Take Risk
+                          </label>
+                          <br />
+                          {meta.touched && meta.error && (
+                            <span className="text-danger">{meta.error}</span>
+                          )}
+                        </div>
+                      )}
+                    </Field>
                   </div>
 
                   <div className="m-3 form-check">
                     <Field
                       name="terms2"
                       type="checkbox"
+                      id="terms2"
                       validate={isTrue}
                     >
                       {({ input, meta }) => (
-                          <div>
-                            <input {...input} type="checkbox" id="terms2" className="form-check-input"/>
-                            <label  className="form-check-label" htmlFor="terms2">
-                                  Agree To Thank Elon
-                                </label>
-                                <br/>
-                                {meta.touched && meta.error && (
-                            <span className="text-danger">
-                              {meta.error}
-                            </span>
+                        <div>
+                          <input
+                            {...input}
+                            type="checkbox"
+                            id="terms2"
+                            className="form-check-input"
+                          />
+                          <label className="form-check-label" htmlFor="terms2">
+                            Send msg to Elon
+                          </label>
+                          <br />
+                          {meta.touched && meta.error && (
+                            <span className="text-danger">{meta.error}</span>
                           )}
-                          </div>
+                        </div>
                       )}
                     </Field>
                   </div>
+                  {values.terms2 === true && (
+                    <div className="m-3">
+                      <Field
+                        name="msg"
+                        type="input"
+                        component="textarea"
+                        className="form-control"
+                      ></Field>
+                    </div>
+                  )}
 
-                  
                   <div className="col-12">
                     <button className="btn btn-primary m-3" type="submit">
                       Send to Mars
@@ -212,8 +213,12 @@ function App() {
           </div>
 
           {/* Side for sent Rockets */}
-          <div className="col-8 bg-secondary d-inline-flex">
-            {renderRockets(rockets)}
+          <div className="col-8 bg-secondary">
+            <div className="container d-block">
+              <div className="row">
+                <List list={rockets} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
